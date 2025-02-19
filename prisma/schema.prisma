@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model MenuCategory {
+  id           String     @id
+  name         String
+  restaurantId String
+  createAt     DateTime   @default(now())
+  updateAt     DateTime
+  Restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  Product      Product[]
+}
+
+model Order {
+  id                Int               @id @default(autoincrement())
+  total             Float
+  status            OrderStatus
+  consumptionMethod ConsumptionMethod
+  restaurantId      String
+  createAt          DateTime          @default(now())
+  updateAt          DateTime
+  Restaurant        Restaurant        @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  OrderProduct      OrderProduct[]
+}
+
+model OrderProduct {
+  id        String   @id
+  productId String
+  orderId   Int
+  quantity  Int
+  price     Float
+  createAt  DateTime @default(now())
+  updateAt  DateTime
+  Order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  Product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Product {
+  id             String         @id
+  name           String
+  description    String
+  price          Float
+  imageUrl       String
+  ingredients    String[]
+  restaurantId   String
+  menuCategoryId String
+  createAt       DateTime       @default(now())
+  updateAt       DateTime
+  OrderProduct   OrderProduct[]
+  MenuCategory   MenuCategory   @relation(fields: [menuCategoryId], references: [id], onDelete: Cascade)
+  Restaurant     Restaurant     @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Restaurant {
+  id             String         @id
+  name           String
+  slug           String
+  description    String
+  avatarImageUrl String
+  coverImageUrl  String
+  createAt       DateTime       @default(now())
+  updateAt       DateTime
+  MenuCategory   MenuCategory[]
+  Order          Order[]
+  Product        Product[]
+}
+
+enum ConsumptionMethod {
+  TAKEWAY
+  DINE_IN
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PREPARATION
+  FINISHED
+}
